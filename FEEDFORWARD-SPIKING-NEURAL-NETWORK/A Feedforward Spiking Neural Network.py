@@ -162,3 +162,17 @@ spk1_rec = torch.stack(spk1_rec)
 spk2_rec = torch.stack(spk2_rec)
 
 plot_snn_spikes(spk_in, spk1_rec, spk2_rec, "Fully Connected Spiking Neural Network")
+
+# from IPython.display import HTML
+
+fig, ax = plt.subplots(facecolor='w', figsize=(12, 7))
+labels=['0', '1', '2', '3', '4', '5', '6', '7', '8','9']
+spk2_rec = spk2_rec.squeeze(1).detach().cpu()
+
+import matplotlib as mpl
+mpl.rcParams['animation.ffmpeg_path'] = 'C:\\path\\to\\your\\ffmpeg.exe'
+
+#  Plot spike count histogram
+anim = splt.spike_count(spk2_rec, fig, ax, labels=labels, animate=True)
+# HTML(anim.to_html5_video())
+anim.save(".\\spike_bar.gif")
