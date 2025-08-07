@@ -176,3 +176,8 @@ mpl.rcParams['animation.ffmpeg_path'] = 'C:\\path\\to\\your\\ffmpeg.exe'
 anim = splt.spike_count(spk2_rec, fig, ax, labels=labels, animate=True)
 # HTML(anim.to_html5_video())
 anim.save(".\\spike_bar.gif")
+
+# plot membrane potential traces
+splt.traces(mem2_rec.squeeze(1), spk=spk2_rec.squeeze(1))
+fig = plt.gcf()
+fig.set_size_inches(8, 6)
