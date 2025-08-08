@@ -52,5 +52,3 @@ class LeakySurrogate(nn.Module):
 
 lif1 = LeakySurrogate(beta=0.9)
 lif1 = snn.Leaky(beta=0.9)
-
-
