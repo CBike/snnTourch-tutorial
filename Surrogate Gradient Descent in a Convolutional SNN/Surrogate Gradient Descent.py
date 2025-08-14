@@ -52,3 +52,10 @@ class LeakySigmoidSurrogate(nn.Module):
         grad_input = grad_output.clone()
         grad = grad_input / (ctx.k * torch.abs(mem) + 1.0) ** 2  # gradient of fast sigmoid on backward pass: Eq(4)
         return grad, None
+
+
+spike_grad = surrogate.fast_sigmoid(slope=25)
+beta = 0.5
+
+lif1 = snn.Leaky(beta=beta, spike_grad=spike_grad)
+
