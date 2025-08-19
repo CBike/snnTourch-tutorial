@@ -75,9 +75,6 @@ class Net(nn.Module):
 
         return spk3, mem3
 
-
-
-
 #  Initialize Network
 net = nn.Sequential(nn.Conv2d(1, 12, 5),
                     nn.MaxPool2d(2),
@@ -89,3 +86,69 @@ net = nn.Sequential(nn.Conv2d(1, 12, 5),
                     nn.Linear(64*4*4, 10),
                     snn.Leaky(beta=beta, spike_grad=spike_grad, init_hidden=True, output=True)
                     ).to(device)
+
+
+
+# already imported snntorch.functional as SF
+loss_fn = SF.ce_rate_loss()
+acc = SF.accuracy_rate(spk_rec, targets)
+
+
+def batch_accuracy(train_loader, net, num_steps):
+    with torch.no_grad():
+        total = 0
+        acc = 0
+        net.eval()
+
+        train_loader = iter(train_loader)
+        for data, targets in train_loader:
+            data = data.to(device)
+            targets = targets.to(device)
+            spk_rec, _ = forward_pass(net, num_steps, data)
+
+            acc += SF.accuracy_rate(spk_rec, targets) * spk_rec.size(1)
+            total += spk_rec.size(1)
+
+        return acc / total
+
+
+optimizer = torch.optim.Adam(net.parameters(), lr=1e-2, betas=(0.9, 0.999))
+num_epochs = 1
+loss_hist = []
+test_acc_hist = []
+counter = 0
+
+# Outer training loop
+for epoch in range(num_epochs):
+
+    # Training loop
+    for data, targets in iter(train_loader):
+        data = data.to(device)
+        targets = targets.to(device)
+
+        # forward pass
+        net.train()
+        spk_rec, _ = forward_pass(net, num_steps, data)
+
+        # initialize the loss & sum over time
+        loss_val = loss_fn(spk_rec, targets)
+
+        # Gradient calculation + weight update
+        optimizer.zero_grad()
+        loss_val.backward()
+        optimizer.step()
+
+        # Store loss history for future plotting
+        loss_hist.append(loss_val.item())
+
+        # Test set
+        if counter % 50 == 0:
+        with torch.no_grad():
+            net.eval()
+
+            # Test set forward pass
+            test_acc = batch_accuracy(test_loader, net, num_steps)
+            print(f"Iteration {counter}, Test Acc: {test_acc * 100:.2f}%\n")
+            test_acc_hist.append(test_acc.item())
+
+        counter += 1
